@@ -1,13 +1,11 @@
 package com.troubleshoot.chatbot.service;
 
-import com.troubleshoot.chatbot.model.ChatMessage;
 import com.troubleshoot.chatbot.model.TroubleshootingKnowledge;
 import com.troubleshoot.chatbot.repository.TroubleshootingKnowledgeRepository;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class AIService {
@@ -22,7 +20,7 @@ public class AIService {
         this.geminiService = geminiService;
     }
     
-    public String generateResponse(String userMessage, List<ChatMessage> conversationHistory) {
+    public String generateResponse(String userMessage) {
         // Extract keywords from user message
         String[] keywords = extractKeywords(userMessage);
         
@@ -34,9 +32,7 @@ public class AIService {
         
         // Use Gemini AI to generate intelligent response with context
         log.info("Calling Gemini AI for user message: {}", userMessage);
-        String geminiResponse = geminiService.generateResponse(userMessage, context);
-        
-        return geminiResponse;
+        return geminiService.generateResponse(userMessage, context);
     }
     
     private String[] extractKeywords(String message) {
@@ -50,7 +46,7 @@ public class AIService {
                 .flatMap(keyword -> knowledgeRepository.findByKeyword(keyword).stream())
                 .distinct()
                 .limit(3)
-                .collect(Collectors.toList());
+                .toList();
     }
     
     private String buildContextFromKnowledgeBase(List<TroubleshootingKnowledge> solutions) {

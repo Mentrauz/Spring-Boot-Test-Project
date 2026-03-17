@@ -14,6 +14,4 @@ public interface TroubleshootingKnowledgeRepository extends JpaRepository<Troubl
            "LOWER(tk.problem) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(tk.keywords) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<TroubleshootingKnowledge> findByKeyword(@Param("keyword") String keyword);
-    
-    List<TroubleshootingKnowledge> findByCategory(String category);
 }

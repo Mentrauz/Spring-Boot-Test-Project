@@ -1,8 +1,8 @@
 package com.troubleshoot.chatbot.service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,11 +26,9 @@ public class GeminiService {
     private String apiUrl;
     
     private final HttpClient httpClient;
-    private final Gson gson;
     
     public GeminiService() {
         this.httpClient = HttpClient.newHttpClient();
-        this.gson = new Gson();
     }
     
     public String generateResponse(String userMessage, String context) {
@@ -117,12 +115,12 @@ public class GeminiService {
         generationConfig.addProperty("maxOutputTokens", 1024);
         requestBody.add("generationConfig", generationConfig);
         
-        return gson.toJson(requestBody);
+        return requestBody.toString();
     }
     
     private String parseResponse(String responseBody) {
         try {
-            JsonObject jsonResponse = gson.fromJson(responseBody, JsonObject.class);
+            JsonObject jsonResponse = JsonParser.parseString(responseBody).getAsJsonObject();
             
             if (jsonResponse.has("candidates") && jsonResponse.getAsJsonArray("candidates").size() > 0) {
                 JsonObject candidate = jsonResponse.getAsJsonArray("candidates").get(0).getAsJsonObject();

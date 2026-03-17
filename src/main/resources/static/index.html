@@ -693,6 +693,9 @@
     sendMessage();
   }
 
+  /* ── Cache welcome screen HTML on load ── */
+  const welcomeHtmlCache = document.getElementById('welcome-screen').innerHTML;
+
   /* ── New Chat ── */
   function newChat() {
     sessionId    = null;
@@ -709,18 +712,7 @@
   function showWelcome() {
     const ws = document.createElement('div');
     ws.id = 'welcome-screen';
-    ws.innerHTML = document.querySelector('#welcome-screen')?.innerHTML ||
-      `<div class="welcome-card">
-        <div class="welcome-logo">🔧</div>
-        <h1>How can I help you today?</h1>
-        <p>Describe any technical issue and I'll walk you through a fix.</p>
-        <div class="suggestion-row">
-          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Internet not working</span>
-          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">App crashes</span>
-          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Computer slow</span>
-          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">No sound</span>
-        </div>
-      </div>`;
+    ws.innerHTML = welcomeHtmlCache;
     chatEl.appendChild(ws);
   }
 

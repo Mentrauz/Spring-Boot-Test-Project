@@ -31,11 +31,8 @@ public class ChatService {
         userMessage.setContent(request.getMessage());
         chatMessageRepository.save(userMessage);
         
-        // Get conversation history
-        List<ChatMessage> history = chatMessageRepository.findBySessionIdOrderByTimestampAsc(sessionId);
-        
         // Generate AI response
-        String aiResponse = aiService.generateResponse(request.getMessage(), history);
+        String aiResponse = aiService.generateResponse(request.getMessage());
         boolean resolved = aiService.isIssueResolved(request.getMessage());
         
         // Save AI response
