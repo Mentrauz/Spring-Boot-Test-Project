@@ -1,113 +1,360 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI Troubleshooting Assistant</title>
+  <title>TechBot — AI Troubleshooting Assistant</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --green:       #4d8c6f;
+      --green-dim:   #3a6b54;
+      --green-glow:  rgba(77,140,111,0.15);
+      --green-soft:  rgba(77,140,111,0.08);
+      --bg:          #0d0d0d;
+      --sidebar:     #111111;
+      --card:        #181818;
+      --card2:       #1f1f1f;
+      --border:      #272727;
+      --text:        #e5e5e5;
+      --muted:       #555;
+      --muted2:      #888;
+      --radius:      12px;
+    }
+
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #0f1117;
-      color: #e2e8f0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       height: 100dvh;
       display: flex;
-      flex-direction: column;
       overflow: hidden;
     }
 
-    /* ── Header ── */
-    header {
+    /* ═══════════════ SIDEBAR ═══════════════ */
+    #sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: width 0.25s;
+    }
+
+    .sidebar-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 14px 24px;
-      background: #1a1d27;
-      border-bottom: 1px solid #2d3148;
-      flex-shrink: 0;
+      justify-content: space-between;
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .header-icon {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border-radius: 10px;
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .sidebar-logo .logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--green), #15803d);
+      border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
+      font-size: 15px;
+    }
+
+    .sidebar-logo span {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--muted2);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .icon-btn:hover { color: #fff; background: var(--card2); }
+
+    /* Search */
+    .search-wrap {
+      padding: 12px 12px 8px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px 8px 34px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 10px center;
+    }
+
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-wrap input:focus { border-color: var(--green); }
+
+    /* Sidebar sections */
+    .sidebar-section {
+      padding: 8px 12px 4px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-section::-webkit-scrollbar { width: 3px; }
+    .sidebar-section::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 6px 4px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .session-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-bottom: 2px;
+    }
+
+    .session-item:hover { background: var(--card2); }
+    .session-item.active { background: var(--green-soft); }
+    .session-item.active .session-title { color: var(--green); }
+
+    .session-icon {
+      font-size: 13px;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    .session-text { flex: 1; min-width: 0; }
+
+    .session-title {
+      font-size: 13px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-preview {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* New Chat button */
+    .new-chat-btn {
+      margin: 12px;
+      padding: 11px;
+      background: var(--green);
+      color: #000;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.1s;
       flex-shrink: 0;
     }
 
-    .header-text h1 { font-size: 16px; font-weight: 600; color: #f1f5f9; }
-    .header-text p  { font-size: 12px; color: #64748b; margin-top: 1px; }
+    .new-chat-btn:hover  { background: #5fa882; }
+    .new-chat-btn:active { transform: scale(0.97); }
 
-    .status-dot {
-      width: 8px; height: 8px;
-      background: #22c55e;
-      border-radius: 50%;
-      margin-left: auto;
-      box-shadow: 0 0 6px #22c55e;
-      animation: pulse 2s infinite;
+    /* ═══════════════ MAIN AREA ═══════════════ */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg);
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
+    /* Green radial background glow */
+    #main::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 500px;
+      background: radial-gradient(ellipse at center, rgba(34,197,94,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    /* ── Chat area ── */
+    /* Top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .topbar-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .model-badge {
+      padding: 3px 9px;
+      background: var(--green-soft);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    .topbar-actions { margin-left: auto; display: flex; gap: 6px; }
+
+    /* Chat scroll area */
     #chat {
       flex: 1;
       overflow-y: auto;
-      padding: 24px 16px;
+      padding: 28px 20px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      scroll-behavior: smooth;
+      gap: 24px;
+      position: relative;
+      z-index: 1;
     }
 
     #chat::-webkit-scrollbar { width: 4px; }
-    #chat::-webkit-scrollbar-track { background: transparent; }
-    #chat::-webkit-scrollbar-thumb { background: #2d3148; border-radius: 4px; }
+    #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-    /* ── Welcome banner ── */
-    .welcome {
+    /* ── Welcome screen ── */
+    #welcome-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 20px;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .welcome-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px 32px;
       text-align: center;
-      padding: 40px 20px 20px;
-      animation: fadeUp 0.5s ease;
+      max-width: 560px;
+      width: 100%;
     }
 
-    .welcome .big-icon {
-      font-size: 52px;
-      margin-bottom: 16px;
-      display: block;
+    .welcome-logo {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, var(--green), #15803d);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 20px;
+      box-shadow: 0 0 24px var(--green-glow);
     }
 
-    .welcome h2 { font-size: 22px; font-weight: 700; color: #f1f5f9; }
-    .welcome p  { font-size: 14px; color: #64748b; margin-top: 8px; max-width: 380px; margin-inline: auto; }
+    .welcome-card h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      line-height: 1.25;
+    }
 
-    .suggestions {
+    .welcome-card p {
+      font-size: 13px;
+      color: var(--muted2);
+      line-height: 1.6;
+      max-width: 380px;
+      margin: 0 auto 26px;
+    }
+
+    /* Feature chips */
+    .feature-chips {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 26px;
+    }
+
+    .feature-chip {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      text-align: center;
+    }
+
+    .feature-chip:hover {
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .feature-chip .chip-icon { font-size: 20px; margin-bottom: 6px; }
+    .feature-chip .chip-title { font-size: 12px; font-weight: 600; color: #ddd; }
+    .feature-chip .chip-desc  { font-size: 11px; color: var(--muted2); margin-top: 3px; line-height: 1.4; }
+
+    /* Suggestion pills */
+    .suggestion-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       justify-content: center;
-      margin-top: 20px;
     }
 
-    .suggestion-btn {
-      padding: 8px 16px;
-      background: #1e2235;
-      border: 1px solid #2d3148;
+    .suggestion-pill {
+      padding: 7px 14px;
+      background: var(--card2);
+      border: 1px solid var(--border);
       border-radius: 20px;
-      color: #94a3b8;
-      font-size: 13px;
+      font-size: 12px;
+      color: var(--muted2);
       cursor: pointer;
       transition: all 0.2s;
     }
 
-    .suggestion-btn:hover {
-      background: #252a40;
-      border-color: #6366f1;
-      color: #e2e8f0;
+    .suggestion-pill:hover {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-soft);
     }
 
     /* ── Messages ── */
@@ -115,75 +362,80 @@
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      max-width: 820px;
+      max-width: 800px;
       width: 100%;
       margin-inline: auto;
-      animation: fadeUp 0.3s ease;
+      animation: fadeUp 0.25s ease;
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
+      from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
     .message.user { flex-direction: row-reverse; }
 
-    /* wrapper div holding bubble + badge — must grow and shrink properly */
     .message-body {
       display: flex;
       flex-direction: column;
       flex: 1;
       min-width: 0;
-      max-width: calc(100% - 50px);
+      max-width: calc(100% - 48px);
     }
 
-    .message.user  .message-body { align-items: flex-end; }
-    .message.bot   .message-body { align-items: flex-start; }
+    .message.user .message-body { align-items: flex-end; }
+    .message.bot  .message-body { align-items: flex-start; }
 
     .avatar {
-      width: 34px; height: 34px;
-      border-radius: 10px;
+      width: 32px; height: 32px;
+      border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 15px;
+      font-size: 14px;
       flex-shrink: 0;
       margin-top: 2px;
     }
 
-    .message.user .avatar { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-    .message.bot  .avatar { background: #1e2235; border: 1px solid #2d3148; }
+    .message.user .avatar {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    }
+
+    .message.bot .avatar {
+      background: linear-gradient(135deg, var(--green), #15803d);
+      box-shadow: 0 0 10px var(--green-glow);
+    }
 
     .bubble {
       padding: 12px 16px;
       border-radius: 14px;
       font-size: 14px;
-      line-height: 1.65;
+      line-height: 1.7;
       max-width: 100%;
       word-break: break-word;
     }
 
     .message.user .bubble {
-      background: linear-gradient(135deg, #6366f1, #7c3aed);
-      color: #fff;
+      background: #1e1e2e;
+      border: 1px solid #2d2d4a;
+      color: #e2e8f0;
       border-bottom-right-radius: 4px;
-      text-align: left;
     }
 
     .message.bot .bubble {
-      background: #1a1d27;
-      border: 1px solid #2d3148;
-      color: #e2e8f0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
       border-bottom-left-radius: 4px;
     }
 
-    /* Markdown-like formatting inside bot bubbles */
-    .bubble h3    { font-size: 14px; font-weight: 600; margin: 12px 0 6px; color: #f1f5f9; }
+    /* Markdown inside bot bubble */
+    .bubble h3        { font-size: 14px; font-weight: 700; color: #fff; margin: 12px 0 6px; }
     .bubble h3:first-child { margin-top: 0; }
-    .bubble strong { color: #c4b5fd; }
-    .bubble em     { color: #94a3b8; }
-    .bubble code   { background: #0f1117; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #a5f3fc; }
+    .bubble strong    { color: var(--green); }
+    .bubble em        { color: var(--muted2); }
+    .bubble code      { background: #0a0a0a; padding: 2px 6px; border-radius: 5px; font-size: 12px; color: #86efac; border: 1px solid var(--border); }
     .bubble ol, .bubble ul { padding-left: 20px; margin: 6px 0; }
-    .bubble li     { margin: 4px 0; }
-    .bubble p      { margin: 6px 0; }
+    .bubble li        { margin: 5px 0; }
+    .bubble p         { margin: 6px 0; }
     .bubble p:first-child { margin-top: 0; }
     .bubble p:last-child  { margin-bottom: 0; }
 
@@ -191,27 +443,27 @@
     .resolved-badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
-      background: rgba(34,197,94,0.15);
-      border: 1px solid rgba(34,197,94,0.3);
+      gap: 5px;
+      margin-top: 8px;
+      padding: 4px 12px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.25);
       border-radius: 20px;
       font-size: 11px;
-      color: #22c55e;
-      margin-top: 8px;
+      color: var(--green);
     }
 
-    /* Typing indicator */
+    /* Typing dots */
     .typing .bubble {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       padding: 14px 18px;
     }
 
     .dot {
       width: 7px; height: 7px;
-      background: #6366f1;
+      background: var(--green);
       border-radius: 50%;
       animation: bounce 1.2s infinite;
     }
@@ -220,212 +472,276 @@
     .dot:nth-child(3) { animation-delay: 0.4s; }
 
     @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
       30%            { transform: translateY(-6px); opacity: 1; }
     }
 
-    /* ── Input bar ── */
-    .input-bar {
-      padding: 16px;
-      background: #1a1d27;
-      border-top: 1px solid #2d3148;
+    /* ═══════════════ INPUT BAR ═══════════════ */
+    .input-area {
+      padding: 14px 20px 18px;
       flex-shrink: 0;
+      z-index: 1;
     }
 
-    .input-row {
-      display: flex;
-      gap: 10px;
-      max-width: 820px;
+    .input-box {
+      max-width: 800px;
       margin-inline: auto;
-      background: #0f1117;
-      border: 1px solid #2d3148;
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 8px 8px 8px 16px;
-      transition: border-color 0.2s;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 10px 10px 10px 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .input-row:focus-within { border-color: #6366f1; }
+    .input-box:focus-within {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-glow);
+    }
 
     #userInput {
       flex: 1;
       background: transparent;
       border: none;
       outline: none;
-      color: #e2e8f0;
+      color: var(--text);
       font-size: 14px;
       font-family: inherit;
       resize: none;
-      max-height: 120px;
-      line-height: 1.5;
-      padding: 4px 0;
+      max-height: 140px;
+      line-height: 1.55;
+      padding: 3px 0;
     }
 
-    #userInput::placeholder { color: #475569; }
+    #userInput::placeholder { color: var(--muted); }
 
     #sendBtn {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      width: 36px; height: 36px;
+      background: var(--green);
       border: none;
-      border-radius: 10px;
-      color: #fff;
-      font-size: 16px;
+      border-radius: 9px;
+      color: #000;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: opacity 0.2s, transform 0.1s;
       flex-shrink: 0;
-      align-self: flex-end;
+      transition: background 0.2s, transform 0.1s;
     }
 
-    #sendBtn:hover   { opacity: 0.85; }
-    #sendBtn:active  { transform: scale(0.92); }
-    #sendBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+    #sendBtn:hover   { background: #5fa882; }
+    #sendBtn:active  { transform: scale(0.9); }
+    #sendBtn:disabled { background: #1e2e28; color: #2e4d3d; cursor: not-allowed; }
 
     .input-hint {
       text-align: center;
       font-size: 11px;
-      color: #334155;
+      color: #2a2a2a;
       margin-top: 8px;
     }
 
-    /* New chat button */
-    #newChatBtn {
-      background: transparent;
-      border: 1px solid #2d3148;
-      border-radius: 8px;
-      color: #64748b;
-      font-size: 12px;
-      padding: 6px 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-left: auto;
-    }
-
-    #newChatBtn:hover { border-color: #6366f1; color: #6366f1; }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      header { padding: 12px 16px; }
-      #chat   { padding: 16px 10px; }
+    /* ═══════════════ RESPONSIVE ═══════════════ */
+    @media (max-width: 700px) {
+      #sidebar { display: none; }
+      .feature-chips { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="header-icon">🤖</div>
-  <div class="header-text">
-    <h1>AI Troubleshooting Assistant</h1>
-    <p>Powered by Gemini AI</p>
-  </div>
-  <div class="status-dot" title="Online"></div>
-  <button id="newChatBtn" onclick="newChat()">＋ New Chat</button>
-</header>
-
-<div id="chat">
-  <div class="welcome" id="welcome">
-    <span class="big-icon">🛠️</span>
-    <h2>How can I help you today?</h2>
-    <p>Describe your technical issue and I'll walk you through a step-by-step solution.</p>
-    <div class="suggestions">
-      <button class="suggestion-btn" onclick="useSuggestion(this)">My internet is not working</button>
-      <button class="suggestion-btn" onclick="useSuggestion(this)">App crashes on startup</button>
-      <button class="suggestion-btn" onclick="useSuggestion(this)">Computer is running slow</button>
-      <button class="suggestion-btn" onclick="useSuggestion(this)">No sound from speakers</button>
-      <button class="suggestion-btn" onclick="useSuggestion(this)">Screen is flickering</button>
-      <button class="suggestion-btn" onclick="useSuggestion(this)">Printer not detected</button>
+<!-- ══════ SIDEBAR ══════ -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🔧</div>
+      <span>TechBot</span>
     </div>
-  </div>
-</div>
-
-<div class="input-bar">
-  <div class="input-row">
-    <textarea id="userInput" rows="1" placeholder="Describe your issue…" maxlength="2000"></textarea>
-    <button id="sendBtn" onclick="sendMessage()" title="Send">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="22" y1="2" x2="11" y2="13"></line>
-        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-      </svg>
+    <button class="icon-btn" title="Menu">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
   </div>
-  <div class="input-hint">Press <kbd style="background:#1e2235;padding:1px 5px;border-radius:4px;border:1px solid #2d3148">Enter</kbd> to send &nbsp;·&nbsp; <kbd style="background:#1e2235;padding:1px 5px;border-radius:4px;border:1px solid #2d3148">Shift+Enter</kbd> for new line</div>
-</div>
+
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Search chats…" oninput="filterSessions(this.value)"/>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">
+      Recent Chats
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <div id="session-list">
+      <div style="padding:20px 4px; text-align:center; font-size:12px; color:var(--muted)">
+        No chats yet.<br>Start a new conversation!
+      </div>
+    </div>
+  </div>
+
+  <button class="new-chat-btn" onclick="newChat()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Chat
+  </button>
+</aside>
+
+<!-- ══════ MAIN ══════ -->
+<main id="main">
+
+  <div class="topbar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <span class="topbar-title" id="topbar-title">New Chat</span>
+    <span class="model-badge">Gemini · Flash</span>
+    <div class="topbar-actions">
+      <button class="icon-btn" title="New Chat" onclick="newChat()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="chat">
+    <!-- Welcome screen (shown when no messages) -->
+    <div id="welcome-screen">
+      <div class="welcome-card">
+        <div class="welcome-logo">🔧</div>
+        <h1>How can I help you today?</h1>
+        <p>I'm TechBot, your AI-powered troubleshooting assistant. Describe any technical issue and I'll walk you through a fix.</p>
+
+        <div class="feature-chips">
+          <div class="feature-chip" onclick="useSuggestion('Diagnose my network issue')">
+            <div class="chip-icon">🌐</div>
+            <div class="chip-title">Network Issues</div>
+            <div class="chip-desc">Wi-Fi, internet & connectivity problems</div>
+          </div>
+          <div class="feature-chip" onclick="useSuggestion('My app keeps crashing')">
+            <div class="chip-icon">💥</div>
+            <div class="chip-title">App Crashes</div>
+            <div class="chip-desc">Fix freezing or crashing applications</div>
+          </div>
+          <div class="feature-chip" onclick="useSuggestion('My computer is running slow')">
+            <div class="chip-icon">⚡</div>
+            <div class="chip-title">Performance</div>
+            <div class="chip-desc">Speed up slow or lagging devices</div>
+          </div>
+          <div class="feature-chip" onclick="useSuggestion('No sound from my speakers')">
+            <div class="chip-icon">🔊</div>
+            <div class="chip-title">Audio Issues</div>
+            <div class="chip-desc">Fix sound and audio driver problems</div>
+          </div>
+          <div class="feature-chip" onclick="useSuggestion('My screen is flickering or blank')">
+            <div class="chip-icon">🖥️</div>
+            <div class="chip-title">Display Issues</div>
+            <div class="chip-desc">Screen, GPU & display driver fixes</div>
+          </div>
+          <div class="feature-chip" onclick="useSuggestion('My printer is not detected')">
+            <div class="chip-icon">🖨️</div>
+            <div class="chip-title">Peripherals</div>
+            <div class="chip-desc">Printers, USB devices & hardware</div>
+          </div>
+        </div>
+
+        <div class="suggestion-row">
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Blue screen error</span>
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Can't connect to VPN</span>
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Battery draining fast</span>
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Windows update failed</span>
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Keyboard not working</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-box">
+      <textarea id="userInput" rows="1" placeholder="Describe your technical issue…" maxlength="3000"></textarea>
+      <button id="sendBtn" onclick="sendMessage()" title="Send">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+    <div class="input-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for new line</div>
+  </div>
+
+</main>
 
 <script>
-  let sessionId = null;
+  /* ── State ── */
+  let sessionId   = null;
+  let sessionTitle = null;
+  let sessions    = []; // { id, title, preview }
 
-  const chatEl   = document.getElementById('chat');
-  const inputEl  = document.getElementById('userInput');
-  const sendBtn  = document.getElementById('sendBtn');
+  const chatEl    = document.getElementById('chat');
+  const inputEl   = document.getElementById('userInput');
+  const sendBtn   = document.getElementById('sendBtn');
+  const titleEl   = document.getElementById('topbar-title');
 
-  // Auto-resize textarea
+  /* ── Auto-resize textarea ── */
   inputEl.addEventListener('input', () => {
     inputEl.style.height = 'auto';
-    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
   });
 
-  // Enter to send, Shift+Enter for newline
   inputEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   });
 
-  function useSuggestion(btn) {
-    inputEl.value = btn.textContent;
+  /* ── Suggestions ── */
+  function useSuggestion(text) {
+    inputEl.value = text;
     inputEl.dispatchEvent(new Event('input'));
-    inputEl.focus();
     sendMessage();
   }
 
+  /* ── New Chat ── */
   function newChat() {
-    sessionId = null;
+    sessionId    = null;
+    sessionTitle = null;
+    titleEl.textContent = 'New Chat';
     chatEl.innerHTML = '';
-    chatEl.insertAdjacentHTML('afterbegin', document.querySelector('.welcome')?.outerHTML || '');
-    // Re-render welcome if removed
-    chatEl.innerHTML = `
-      <div class="welcome" id="welcome">
-        <span class="big-icon">🛠️</span>
-        <h2>How can I help you today?</h2>
-        <p>Describe your technical issue and I'll walk you through a step-by-step solution.</p>
-        <div class="suggestions">
-          <button class="suggestion-btn" onclick="useSuggestion(this)">My internet is not working</button>
-          <button class="suggestion-btn" onclick="useSuggestion(this)">App crashes on startup</button>
-          <button class="suggestion-btn" onclick="useSuggestion(this)">Computer is running slow</button>
-          <button class="suggestion-btn" onclick="useSuggestion(this)">No sound from speakers</button>
-          <button class="suggestion-btn" onclick="useSuggestion(this)">Screen is flickering</button>
-          <button class="suggestion-btn" onclick="useSuggestion(this)">Printer not detected</button>
-        </div>
-      </div>`;
+    showWelcome();
     inputEl.value = '';
     inputEl.style.height = 'auto';
+    inputEl.focus();
+    renderSessions();
   }
 
+  function showWelcome() {
+    const ws = document.createElement('div');
+    ws.id = 'welcome-screen';
+    ws.innerHTML = document.querySelector('#welcome-screen')?.innerHTML ||
+      `<div class="welcome-card">
+        <div class="welcome-logo">🔧</div>
+        <h1>How can I help you today?</h1>
+        <p>Describe any technical issue and I'll walk you through a fix.</p>
+        <div class="suggestion-row">
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Internet not working</span>
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">App crashes</span>
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">Computer slow</span>
+          <span class="suggestion-pill" onclick="useSuggestion(this.textContent)">No sound</span>
+        </div>
+      </div>`;
+    chatEl.appendChild(ws);
+  }
+
+  /* ── Append message ── */
   function appendMessage(role, text, resolved) {
-    // Hide welcome screen on first message
-    const welcome = document.getElementById('welcome');
+    const welcome = document.getElementById('welcome-screen');
     if (welcome) welcome.remove();
 
     const isUser = role === 'user';
-    const avatar = isUser ? '👤' : '🤖';
-
     const div = document.createElement('div');
     div.className = `message ${role}`;
 
-    const bubbleContent = isUser
-      ? escapeHtml(text)
-      : renderMarkdown(text);
-
-    const resolvedBadge = (!isUser && resolved)
-      ? `<div class="resolved-badge">✅ Issue marked as resolved</div>`
-      : '';
+    const bubbleContent = isUser ? escapeHtml(text) : renderMarkdown(text);
+    const badge = (!isUser && resolved)
+      ? `<div class="resolved-badge">✅ Issue resolved</div>` : '';
 
     div.innerHTML = `
-      <div class="avatar">${avatar}</div>
+      <div class="avatar">${isUser ? '👤' : '🔧'}</div>
       <div class="message-body">
         <div class="bubble">${bubbleContent}</div>
-        ${resolvedBadge}
+        ${badge}
       </div>`;
 
     chatEl.appendChild(div);
@@ -433,17 +749,16 @@
     return div;
   }
 
+  /* ── Typing indicator ── */
   function showTyping() {
     const div = document.createElement('div');
     div.className = 'message bot typing';
     div.id = 'typing-indicator';
     div.innerHTML = `
-      <div class="avatar">🤖</div>
+      <div class="avatar">🔧</div>
       <div class="message-body">
         <div class="bubble">
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
         </div>
       </div>`;
     chatEl.appendChild(div);
@@ -451,10 +766,10 @@
   }
 
   function hideTyping() {
-    const el = document.getElementById('typing-indicator');
-    if (el) el.remove();
+    document.getElementById('typing-indicator')?.remove();
   }
 
+  /* ── Send ── */
   async function sendMessage() {
     const text = inputEl.value.trim();
     if (!text) return;
@@ -466,6 +781,12 @@
     appendMessage('user', text);
     showTyping();
 
+    // Set title from first message
+    if (!sessionTitle) {
+      sessionTitle = text.length > 36 ? text.slice(0, 36) + '…' : text;
+      titleEl.textContent = sessionTitle;
+    }
+
     try {
       const payload = { message: text };
       if (sessionId) payload.sessionId = sessionId;
@@ -476,7 +797,7 @@
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
 
       const data = await res.json();
       sessionId = data.sessionId;
@@ -484,44 +805,95 @@
       hideTyping();
       appendMessage('bot', data.response, data.resolved);
 
+      // Update session list
+      updateSession(sessionId, sessionTitle, text);
+
     } catch (err) {
       hideTyping();
-      appendMessage('bot', `⚠️ Sorry, I couldn't connect to the AI service. Please make sure the server is running.\n\n_Error: ${err.message}_`);
+      appendMessage('bot', `⚠️ **Connection error.** Please make sure the server is running.\n\n_${err.message}_`);
     } finally {
       sendBtn.disabled = false;
       inputEl.focus();
     }
   }
 
-  // ── Helpers ──
+  /* ── Session list ── */
+  function updateSession(id, title, preview) {
+    const existing = sessions.find(s => s.id === id);
+    if (existing) {
+      existing.preview = preview;
+    } else {
+      sessions.unshift({ id, title, preview });
+    }
+    renderSessions();
+  }
 
+  function renderSessions(filter = '') {
+    const list = document.getElementById('session-list');
+    const filtered = sessions.filter(s =>
+      s.title.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div style="padding:20px 4px;text-align:center;font-size:12px;color:var(--muted)">
+        ${filter ? 'No matches found.' : 'No chats yet.<br>Start a new conversation!'}
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(s => `
+      <div class="session-item ${s.id === sessionId ? 'active' : ''}"
+           onclick="loadSession('${s.id}','${escapeAttr(s.title)}')">
+        <div class="session-icon">💬</div>
+        <div class="session-text">
+          <div class="session-title">${escapeHtml(s.title)}</div>
+          <div class="session-preview">${escapeHtml(s.preview)}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function filterSessions(val) { renderSessions(val); }
+
+  async function loadSession(id, title) {
+    sessionId    = id;
+    sessionTitle = title;
+    titleEl.textContent = title;
+    chatEl.innerHTML    = '';
+
+    try {
+      const res  = await fetch(`/api/chat/history/${id}`);
+      const msgs = await res.json();
+      msgs.forEach(m => appendMessage(m.role === 'USER' ? 'user' : 'bot', m.content, false));
+    } catch {
+      appendMessage('bot', '⚠️ Could not load chat history.');
+    }
+    renderSessions();
+  }
+
+  /* ── Helpers ── */
   function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function escapeAttr(str) {
+    return String(str).replace(/'/g, "\\'");
   }
 
   function renderMarkdown(text) {
     return text
-      // Bold
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      // Italic
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // Inline code
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      // Headers (###)
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      // Numbered list
+      .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+      .replace(/`([^`]+)`/g,     '<code>$1</code>')
+      .replace(/^### (.+)$/gm,   '<h3>$1</h3>')
       .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
-      // Bullet list
-      .replace(/^[*\-]\s+(.+)$/gm, '<li>$1</li>')
-      // Wrap consecutive <li> in <ol>
-      .replace(/(<li>.*<\/li>)/gs, match =>
-        match.includes('1.') ? `<ol>${match}</ol>` : `<ul>${match}</ul>`)
-      // Paragraphs (double newlines)
+      .replace(/^[-*]\s+(.+)$/gm,  '<li>$1</li>')
+      .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
       .replace(/\n{2,}/g, '</p><p>')
-      // Single newlines
       .replace(/\n/g, '<br>')
-      // Wrap in paragraph
-      .replace(/^(.+)$/, '<p>$1</p>');
+      .replace(/^(?!<[uoh])(.+)/, '<p>$1</p>');
   }
 </script>
 </body>
